@@ -18,10 +18,12 @@ char Z[] = "Z";
 //END OF SERIAL
 
 //Actuators
-#define DC_motor_pin1 13
-#define DC_motor_pin2 10
-#define ARM_pin 11
-#define led 12
+#define DC_motor_pin1 23
+#define DC_motor_pin2 25
+//if not, 27 and 29
+#define ARM_pin 10
+#define led 13
+
 char arm_prev_state = '0';
 char led_prev_state = '0';
 
