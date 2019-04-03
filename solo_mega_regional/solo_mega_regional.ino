@@ -32,7 +32,7 @@ void setup(void)
 {
 
     Serial1.begin(57600);
-    Serial2.begin(57600);
+    //Serial2.begin(57600);
     Serial.begin (57600);  
     init_thrusters();
     init_mpu6050(); 
