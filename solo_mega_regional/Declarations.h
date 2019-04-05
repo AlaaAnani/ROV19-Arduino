@@ -61,3 +61,4 @@ float WaterSensor = 2;
 //Magnetometer
 #define Metal_Sensor_Pin A2
 int Metal_Sensor_Value = 0;
+String micro_string = "";
