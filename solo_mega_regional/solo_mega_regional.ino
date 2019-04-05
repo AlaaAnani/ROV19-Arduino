@@ -3,8 +3,6 @@
 #include "MPU6050.h"
 #include "Declarations.h"
 
-
-
 //SERIAL
 Servo A, B, C, D, E, F;
 #define MAX_BUF 128
@@ -20,19 +18,19 @@ char Z[] = "Z";
 //Actuators
 #define DC_motor_pin1 23
 #define DC_motor_pin2 25
-//if not, 27 and 29
 #define ARM_pin 10
 #define led 13
-
 char arm_prev_state = '0';
 char led_prev_state = '0';
+
+
 
 
 void setup(void) 
 {
 
     Serial1.begin(57600);
-    //Serial2.begin(57600);
+    Serial2.begin(57600);
     Serial.begin (57600);  
     init_thrusters();
     init_mpu6050(); 
@@ -53,14 +51,14 @@ void loop(void)
     read_from_ros();
     
     //Metal Sensor
-    Metal_Sensor_Value = analogRead(Metal_Sensor_Pin);
-    Metal_Sensor_Value = (float) Metal_Sensor_Value*100/1024.0;
+    //Metal_Sensor_Value = analogRead(Metal_Sensor_Pin);
+    //Metal_Sensor_Value = (float) Metal_Sensor_Value*100/1024.0;
          
     //Temp Sensor
-    readTemp();
+    // readTemp();
   
     //input PH 
-    readPH();
+    //readPH();
 
 
     //*********MPU6050    *********//
@@ -80,12 +78,11 @@ void loop(void)
     if(pitch < 0)   pitch += 360;
     acc_x = normAccel.XAxis - 9.5;
     acc_y = normAccel.YAxis;
-    acc_z = normAccel.ZAxis+ 2;
-    
+    acc_z = normAccel.ZAxis+ 2;    
     //*********END OF MPU6050*********//
 
 
-    ToSendSerially = 'A'  + String(pitch) + 'B' + String(roll)+ 'C' + String(Metal_Sensor_Value)+ 'D' + String(pHValue) + 'E';
+    ToSendSerially = 'A'  + String(yaw) + 'B' + String(roll)+ 'C' ;
     
 /*
  100000 Right (T shapes)
@@ -125,7 +122,7 @@ void loop(void)
     {
       rec_str = ToSendSerially;
       rec_str += 'Z';
-      Serial.print(rec_str);
+      Serial1.print(rec_str);
     }
     
     delay((timeStep*1000) - (millis() - timer));  
@@ -148,7 +145,8 @@ double avergearray(int* arr, int number)
   int max,min;
   double avg;
   long amount=0;
-  if(number<=0){
+  if(number<=0)
+  {
     //Serial.println("Error number for the array to avraging!/n");
     return 0;
   }
@@ -194,7 +192,7 @@ void T_Shapes()
       else
       {
         digitalWrite(DC_motor_pin1, LOW);
-         digitalWrite(DC_motor_pin2, LOW);
+        digitalWrite(DC_motor_pin2, LOW);
       }
       
     //0100 => Left
@@ -213,9 +211,9 @@ void T_Shapes()
  
 void read_from_ros()
 {
-    while (Serial.available())
+    while (Serial1.available())
     {      
-      c = Serial.read();
+      c = Serial1.read();
 
       if (i< MAX_BUF -1)
       buffer[i++] = c;
@@ -265,25 +263,14 @@ void init_thrusters()
   //END OF THRUSTERS
 }
 
-void init_dig_compus()
-{
-    Wire.beginTransmission(addr); //start talking
-    Wire.write(0x0B);             // Tell the HMC5883 to Continuously Measure
-    Wire.write(0x01);             // Set the Register
-    Wire.endTransmission();
-    Wire.beginTransmission(addr); //start talking
-    Wire.write(0x09);             // Tell the HMC5883 to Continuously Measure
-    Wire.write(0x1D);             // Set the Register
-    Wire.endTransmission();
-}
 
 void init_mpu6050()
 {
   if(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
-   {   Serial.println("Could not find a valid MPU6050 sensor, check wiring!Z");
-    delay(500);
+   {   //Serial1.print("Could not find a valid MPU6050 sensor, check wiring!Z");
+       delay(500);
   } 
   mpu.calibrateGyro();
-  mpu.setThreshold(3);  
-  checkSettings();
+  mpu.setThreshold(0);  
+  //checkSettings();
 }
