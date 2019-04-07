@@ -16,12 +16,15 @@ char Z[] = "Z";
 //END OF SERIAL
 
 //Actuators
-#define DC_motor_pin1 23
+#define piston_pin 23
 #define DC_motor_pin2 25
-#define ARM_pin 10
+#define ARM_pin 10 // it should be 10
 #define led 13
+
 char arm_prev_state = '0';
 char led_prev_state = '0';
+char piston_prev_state = '0';
+
 
 
 
@@ -35,10 +38,11 @@ void setup(void)
     init_thrusters();
     init_mpu6050(); 
 
-    pinMode(DC_motor_pin1, OUTPUT);
+    pinMode(piston_pin, OUTPUT);
     pinMode(DC_motor_pin2, OUTPUT);
     pinMode(ARM_pin, OUTPUT); //ARM
     pinMode(led,OUTPUT);
+    pinMode(Metal_Sensor_Pin, INPUT);
 }
 
 
@@ -47,18 +51,19 @@ void setup(void)
 
 void loop(void) 
 {
+  
     // Read serially from ros and write to the motors
     read_from_ros();
     
     //Metal Sensor
-    //Metal_Sensor_Value = analogRead(Metal_Sensor_Pin);
-    //Metal_Sensor_Value = (float) Metal_Sensor_Value*100/1024.0;
+    Metal_Sensor_Value = analogRead(A2);
+    Metal_Sensor_Value = (float) Metal_Sensor_Value*100/1024.0;
          
-    //Temp Sensor
-    // readTemp();
+    //Temp Sensord
+     readTemp();
   
     //input PH 
-    //readPH();
+    readPH();
 
 
     //*********MPU6050    *********//
@@ -80,10 +85,11 @@ void loop(void)
     acc_y = normAccel.YAxis;
     acc_z = normAccel.ZAxis+ 2;    
     //*********END OF MPU6050*********//
-
-
-    ToSendSerially = 'A'  + String(yaw) + 'B' + String(roll)+ 'C' ;
     
+
+    ToSendSerially = 'A'  + String(yaw) + 'B' + String(roll)+ 'C' + String(Tsensor) + 'D' + String(pHValue)
+                    + 'E' + String(Metal_Sensor_Value) + 'F';
+     
 /*
  100000 Right (T shapes)
  010000 Left  (T shapes) 
@@ -93,7 +99,7 @@ void loop(void)
  000001 Metal
  
  */
-
+/*
     //000010 => Temp
      if(receivedrqs[4]=='1')
         ToSendSerially += String(Tsensor) + 'G';
@@ -101,20 +107,24 @@ void loop(void)
      if(receivedrqs[5]=='1')
         ToSendSerially += pHValue + 'H'; 
 
-    T_Shapes();
+    T_Shapes();*/
     //001000 ARM
-    if(receivedrqs[2]=='1' && arm_prev_state == '0' ) //if rising edge
+    if(receivedrqs[0]=='1' && arm_prev_state == '0' ) //if rising edge
     {
           digitalWrite(ARM_pin, !digitalRead(ARM_pin));
     } 
-      
+      if(receivedrqs[1]=='1' && piston_prev_state == '0' ) //if rising edge
+    {
+          digitalWrite(piston_pin, !digitalRead(piston_pin));
+    } 
     //000100 LED
-    if(receivedrqs[3]=='1' && led_prev_state == '0')
+    if(receivedrqs[2]=='1' && led_prev_state == '0')
     {
         digitalWrite(led, !digitalRead(led));
     }
-    arm_prev_state = receivedrqs[2];
-    led_prev_state = receivedrqs[3];
+    arm_prev_state = receivedrqs[0];
+    piston_prev_state = receivedrqs[1];
+    led_prev_state = receivedrqs[2];
 
       
 
@@ -180,6 +190,7 @@ double avergearray(int* arr, int number)
   }//if
   return avg;
 }
+/*
 void T_Shapes()
 {
            //1000 => Right
@@ -207,7 +218,7 @@ void T_Shapes()
         digitalWrite(DC_motor_pin2, LOW);
       }
 }
-
+*/
  
 void read_from_ros()
 {
